@@ -41,7 +41,7 @@ om f m = (m >>=) . flip f
 nom :: Monad m => (a -> b -> m c) -> a -> m b -> m c
 nom f x m = m >>= f x
 
--- | Convenience functions if all you want to use is
+-- | Convenience function if all you want to use is
 --   'Control.Monad.Trans.Cont.callCC'.
 doCallCC :: Monad m => ((r -> ContT r m b) -> ContT r m r) -> m r
 doCallCC = flip runContT return . callCC
