@@ -2,6 +2,7 @@ module Control.Monad.Extra where
 
 import Control.Applicative
 import Control.Monad.Trans.Cont
+import Control.Monad.IO.Class
 
 -- | Synonym for @return ()@.
 skip :: Monad m => m ()
@@ -45,3 +46,7 @@ nom f x m = m >>= f x
 --   'Control.Monad.Trans.Cont.callCC'.
 doCallCC :: Monad m => ((r -> ContT r m b) -> ContT r m r) -> m r
 doCallCC = flip runContT return . callCC
+
+-- | Short-hand for @liftIO@.
+io :: MonadIO m => IO a -> m a
+io = liftIO
