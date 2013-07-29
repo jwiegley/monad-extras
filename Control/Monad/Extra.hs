@@ -11,7 +11,7 @@ skip = return ()
 obvious :: Applicative f => f ()
 obvious = pure ()
 
--- | Function name for '>>=', as fmap is to '<$>'.
+-- | Function name for '>>=', as 'fmap' is to '<$>'.
 bind :: Monad m => m a -> (a -> m b) -> m b
 bind = (>>=)
 
@@ -28,8 +28,7 @@ bind = (>>=)
 -- >>> mapM_ print =<< return [True]
 -- True
 --
--- This subsumes the need for individual functions for 'whenM', 'unlessM',
--- etc.
+-- Subsumes the need for individual functions for 'whenM', 'unlessM', etc.
 om :: Monad m => (a -> b -> m c) -> m a -> b -> m c
 om f m = (m >>=) . flip f
 
@@ -42,6 +41,7 @@ om f m = (m >>=) . flip f
 nom :: Monad m => (a -> b -> m c) -> a -> m b -> m c
 nom f x m = m >>= f x
 
--- | Convenience functions if all you want to use is 'callCC'.
+-- | Convenience functions if all you want to use is
+--   'Control.Monad.Trans.Cont.callCC'.
 doCallCC :: Monad m => ((r -> ContT r m b) -> ContT r m r) -> m r
 doCallCC = flip runContT return . callCC
