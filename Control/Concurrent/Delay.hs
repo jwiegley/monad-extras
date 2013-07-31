@@ -1,8 +1,8 @@
 -- | Delay the current thread with an unbound number of milliseconds.
 
 module Control.Concurrent.Delay
-  (delayMicroseconds
-  ,delayMilliseconds
+  (delayMicrosecs
+  ,delayMillisecs
   ,delaySeconds
   ,delayMinutes
   ,delayHours
@@ -16,22 +16,22 @@ import Control.Concurrent
 -- There is no guarantee that the thread will be rescheduled promptly
 -- when the delay has expired, but the thread will never continue to
 -- run earlier than specified.
-delayMicroseconds :: Integer -> IO ()
-delayMicroseconds microsecs
+delayMicrosecs :: Integer -> IO ()
+delayMicrosecs microsecs
   | microsecs <= fromIntegral maxMicrosecs = threadDelay (fromIntegral microsecs)
   | otherwise = do
     threadDelay maxMicrosecs
-    delayMicroseconds (microsecs - fromIntegral maxMicrosecs)
+    delayMicrosecs (microsecs - fromIntegral maxMicrosecs)
 
   where maxMicrosecs = maxBound :: Int
 
 -- | Delay the current thread for at least n milliseconds.
-delayMilliseconds :: Integer -> IO ()
-delayMilliseconds = delayMicroseconds . (*1000)
+delayMillisecs :: Integer -> IO ()
+delayMillisecs = delayMicrosecs . (*1000)
 
 -- | Delay the current thread for at least n seconds.
 delaySeconds :: Integer -> IO ()
-delaySeconds = delayMilliseconds . (* 1000)
+delaySeconds = delayMillisecs . (* 1000)
 
 -- | Delay the current thread for at least n minutes.
 delayMinutes :: Integer -> IO ()
