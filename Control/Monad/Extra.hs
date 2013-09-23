@@ -1,12 +1,17 @@
 module Control.Monad.Extra where
 
 import Control.Applicative
+import Control.Monad
 import Control.Monad.Trans.Cont
 import Control.Monad.IO.Class
 
 -- | Synonym for @return ()@.
 skip :: Monad m => m ()
 skip = return ()
+
+-- | Discards a value
+discard :: Monad m => a -> m ()
+discard _ = return ()
 
 -- | Synonym for @pure ()@.
 obvious :: Applicative f => f ()
@@ -47,6 +52,16 @@ nom f x m = m >>= f x
 doCallCC :: Monad m => ((r -> ContT r m b) -> ContT r m r) -> m r
 doCallCC = flip runContT return . callCC
 
+-- | Return a continuation that one can jump back to within 'ContT'.
+--
+-- >>> flip runContT return $ do { k <- label; ...; k }
+label :: ContT r m (ContT r m a)
+label = callCC $ \k -> let m = k m in return m
+
 -- | Short-hand for @liftIO@.
 io :: MonadIO m => IO a -> m a
 io = liftIO
+
+-- | Lift a 'Maybe' value into the 'MaybeT' monad transformer.
+liftMaybe :: (MonadPlus m) => Maybe a -> m a
+liftMaybe = maybe mzero return
