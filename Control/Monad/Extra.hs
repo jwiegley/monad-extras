@@ -2,8 +2,10 @@ module Control.Monad.Extra where
 
 import Control.Applicative
 import Control.Monad
-import Control.Monad.Trans.Cont
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Cont
+import Control.Monad.Trans.Control
+import Data.IORef
 
 -- | Synonym for @return ()@.
 skip :: Monad m => m ()
@@ -63,5 +65,106 @@ io :: MonadIO m => IO a -> m a
 io = liftIO
 
 -- | Lift a 'Maybe' value into the 'MaybeT' monad transformer.
-liftMaybe :: (MonadPlus m) => Maybe a -> m a
+liftMaybe :: MonadPlus m => Maybe a -> m a
 liftMaybe = maybe mzero return
+
+-- | Embed a transformer (Kleisli) arrow as an arrow in the base monad
+--   returning a mutated transformer state.  If you do not want the
+--   transformation and your base monad is IO, use 'embedIO'.
+embed :: (MonadBaseControl base m) => (a -> m b) -> m (a -> base (StM m b))
+embed f = control $ \run -> run $ return (run . f)
+
+-- | Return an IO action that closes over the current monad transformer, but
+--   throws away any residual effects within that transformer.
+embedIO :: (MonadBaseControl IO m, MonadIO m) => (a -> m b) -> m (a -> IO b)
+embedIO f = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a -> do
+        _ <- run $ do
+             res <- f a
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO2 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> m r) -> m (a -> b -> IO r)
+embedIO2 f = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b -> do
+        _ <- run $ do
+             res <- f a b
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO3 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> m r) -> m (a -> b -> c -> IO r)
+embedIO3 f = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c -> do
+        _ <- run $ do
+             res <- f a b c
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO4 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> d -> m r) -> m (a -> b -> c -> d -> IO r)
+embedIO4 f = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c d -> do
+        _ <- run $ do
+             res <- f a b c d
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO5 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> d -> e -> m r) -> m (a -> b -> c -> d -> e -> IO r)
+embedIO5 f = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c d e -> do
+        _ <- run $ do
+             res <- f a b c d e
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO6 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> d -> e -> f -> m r)
+          -> m (a -> b -> c -> d -> e -> f -> IO r)
+embedIO6 x = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c d e f -> do
+        _ <- run $ do
+             res <- x a b c d e f
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO7 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> d -> e -> f -> g -> m r)
+          -> m (a -> b -> c -> d -> e -> f -> g -> IO r)
+embedIO7 x = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c d e f g -> do
+        _ <- run $ do
+             res <- x a b c d e f g
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO8 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> d -> e -> f -> g -> h -> m r)
+          -> m (a -> b -> c -> d -> e -> f -> g -> h -> IO r)
+embedIO8 x = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c d e f g h -> do
+        _ <- run $ do
+             res <- x a b c d e f g h
+             liftIO $ writeIORef result res
+        readIORef result
+
+embedIO9 :: (MonadBaseControl IO m, MonadIO m)
+          => (a -> b -> c -> d -> e -> f -> g -> h -> i -> m r)
+          -> m (a -> b -> c -> d -> e -> f -> g -> h -> i -> IO r)
+embedIO9 x = liftBaseWith $ \run -> do
+    result <- newIORef undefined
+    return $ \a b c d e f g h i -> do
+        _ <- run $ do
+             res <- x a b c d e f g h i
+             liftIO $ writeIORef result res
+        readIORef result
