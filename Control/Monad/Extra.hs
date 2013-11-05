@@ -168,3 +168,16 @@ embedIO9 x = liftBaseWith $ \run -> do
              res <- x a b c d e f g h i
              liftIO $ writeIORef result res
         readIORef result
+
+-- | Draw monadic actions from a list until one of them yields a value failing
+--   the predicate, and then return all the passing values in a list within
+--   that monad.
+sequenceUntil :: Monad m => (a -> Bool) -> [m a] -> m [a]
+sequenceUntil _ [] = return []
+sequenceUntil p (m:ms) = do
+    a <- m
+    if p a
+        then return [a]
+        else do
+            as <- sequenceUntil p ms
+            return (a:as)
