@@ -1,10 +1,16 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Control.Monad.Extra where
 
 import Control.Applicative
 import Control.Monad
+import Control.Monad.Base
 import Control.Monad.IO.Class
+import Control.Monad.Morph
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Control
 import Data.IORef
@@ -172,7 +178,7 @@ embedIO9 x = liftBaseWith $ \run -> do
         readIORef result
 
 -- | Draw monadic actions from a list until one of them yields a value
---   satisfying the predicate, and then return all the values up to and 
+--   satisfying the predicate, and then return all the values up to and
 --   including the first that succeeds in a list within that monad.
 sequenceUntil :: Monad m => (a -> Bool) -> [m a] -> m [a]
 sequenceUntil _ [] = return []
@@ -183,3 +189,26 @@ sequenceUntil p (m:ms) = do
         else do
             as <- sequenceUntil p ms
             return (a:as)
+
+-- | A type wrapper for composing monad transformers.  This is very similar to
+--   'Data.Functor.Compose', just one level up.
+newtype ComposeT (f :: (* -> *) -> * -> *) (g :: (* -> *) -> * -> *) m a
+    = ComposeT { getComposeT :: f (g m) a }
+    deriving (Functor, Applicative, Monad, MonadIO)
+
+instance (MFunctor f, MonadTrans f, MonadTrans g)
+         => MonadTrans (ComposeT f g) where
+    lift = ComposeT . hoist lift . lift
+
+instance (MonadIO (f (g m)), Applicative (f (g m)))
+         => MonadBase IO (ComposeT f g m) where
+    liftBase = liftIO
+
+instance (Applicative (f (g m)), MonadBaseControl IO (f (g m)),
+          MonadIO (f (g m)))
+         => MonadBaseControl IO (ComposeT f g m) where
+    newtype StM (ComposeT f g m) a = StMComposeT (StM (f (g m)) a)
+    liftBaseWith f =
+        ComposeT $ liftBaseWith $ \runInBase -> f $ \k ->
+            liftM StMComposeT $ runInBase $ getComposeT k
+    restoreM (StMComposeT m) = ComposeT . restoreM $ m

@@ -1,5 +1,5 @@
 name:           monad-extras
-version:        0.5.1
+version:        0.5.2
 synopsis:       Extra utility functions for working with monads
 -- description:
 homepage:       http://github.com/jwiegley/monad-extras
@@ -18,5 +18,7 @@ library
         Control.Monad.Extra
     build-depends:
         base >= 4 && < 5
+      , mmorph
       , monad-control
       , transformers
+      , transformers-base
