@@ -1,5 +1,5 @@
 name:           monad-extras
-version:        0.5.2
+version:        0.5.3
 synopsis:       Extra utility functions for working with monads
 -- description:
 homepage:       http://github.com/jwiegley/monad-extras
@@ -22,3 +22,4 @@ library
       , monad-control
       , transformers
       , transformers-base
+      , stm

@@ -13,6 +13,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Morph
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Control
+import Control.Monad.STM
 import Data.IORef
 
 -- | Synonym for @return ()@.
@@ -75,6 +76,10 @@ io = liftIO
 -- | Lift a 'Maybe' value into the 'MaybeT' monad transformer.
 liftMaybe :: MonadPlus m => Maybe a -> m a
 liftMaybe = maybe mzero return
+
+-- | A transformer-friendly version of 'atomically'.
+atomicallyM :: MonadIO m => STM a -> m a
+atomicallyM = liftIO . atomically
 
 -- | Embed a transformer (Kleisli) arrow as an arrow in the base monad
 --   returning a mutated transformer state.  If you do not want the
