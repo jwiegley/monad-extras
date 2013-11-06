@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Control.Monad.Extra where
 
 import Control.Applicative
