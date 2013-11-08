@@ -195,6 +195,20 @@ sequenceUntil p (m:ms) = do
             as <- sequenceUntil p ms
             return (a:as)
 
+-- | Draw monadic actions from a list until one of them yields a value
+--   failing the predicate, and then return all the passing values
+--   (discarding the final, failing value) in a list within that
+--   monad.
+sequenceWhile :: Monad m => (a -> Bool) -> [m a] -> m [a]
+sequenceWhile _ [] = return []
+sequenceWhile p (m:ms) = do
+    a <- m
+    if p a
+        then do
+            as <- sequenceWhile p ms
+            return (a:as)
+        else return []
+
 -- | A type wrapper for composing monad transformers.  This is very similar to
 --   'Data.Functor.Compose', just one level up.
 newtype ComposeT (f :: (* -> *) -> * -> *) (g :: (* -> *) -> * -> *) m a
