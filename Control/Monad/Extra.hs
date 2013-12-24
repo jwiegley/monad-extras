@@ -11,10 +11,11 @@ import Control.Monad
 import Control.Monad.Base
 import Control.Monad.IO.Class
 import Control.Monad.Morph
+import Control.Monad.STM
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Control
-import Control.Monad.STM
 import Data.IORef
+import Data.Maybe (catMaybes)
 
 -- | Synonym for @return ()@.
 skip :: Monad m => m ()
@@ -76,6 +77,10 @@ io = liftIO
 -- | Lift a 'Maybe' value into the 'MaybeT' monad transformer.
 liftMaybe :: MonadPlus m => Maybe a -> m a
 liftMaybe = maybe mzero return
+
+-- | A monadic version of @mapMaybe :: (a -> Maybe b) -> [a] -> [b]@.
+mapMaybeM :: (Monad m, Functor m) => (a -> m (Maybe b)) -> [a] -> m [b]
+mapMaybeM f xs = catMaybes <$> mapM f xs
 
 -- | A transformer-friendly version of 'atomically'.
 atomicallyM :: MonadIO m => STM a -> m a
