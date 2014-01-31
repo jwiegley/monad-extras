@@ -1,6 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 
@@ -8,14 +6,13 @@ module Control.Monad.Extra where
 
 import Control.Applicative
 import Control.Monad
-import Control.Monad.Base
 import Control.Monad.IO.Class
-import Control.Monad.Morph
 import Control.Monad.STM
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Control
 import Data.IORef
 import Data.Maybe (catMaybes)
+import System.IO.Unsafe
 
 -- | Synonym for @return ()@.
 skip :: Monad m => m ()
@@ -213,3 +210,18 @@ sequenceWhile p (m:ms) = do
             as <- sequenceWhile p ms
             return (a:as)
         else return []
+
+-- | Monadic equivalent to 'iterate'.  Note that it will not terminate, but may
+--   still be useful in the main event loop of a program, for example.
+iterateM :: Monad m => (a -> m a) -> a -> m [a]
+iterateM f x = do
+    x' <- f x
+    (x':) `liftM` iterateM f x'
+
+-- | A monadic version of 'iterate' which produces an infinite sequence of
+--   values using lazy I/O.
+lazyIterateM :: (Monad m, MonadBaseControl IO m) => (a -> m a) -> a -> m [a]
+lazyIterateM f x = do
+    y <- f x
+    z <- control $ \run -> unsafeInterleaveIO $ run $ iterateM f y
+    return (y:z)
