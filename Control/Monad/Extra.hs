@@ -225,3 +225,13 @@ lazyIterateM f x = do
     y <- f x
     z <- control $ \run -> unsafeInterleaveIO $ run $ iterateM f y
     return (y:z)
+
+-- | Monadic equivalent to 'iterate', which uses Maybe to know when to
+--   terminate.
+iterateMaybeM :: Monad m => (a -> m (Maybe a)) -> a -> m [a]
+iterateMaybeM f x = do
+    mx' <- f x
+    case mx' of
+        Nothing -> return []
+        Just x' -> (x':) `liftM` iterateMaybeM f x'
+
