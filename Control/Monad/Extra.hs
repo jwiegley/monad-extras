@@ -5,13 +5,16 @@
 module Control.Monad.Extra where
 
 import Control.Applicative
-import Control.Monad
+import Control.Monad hiding (mapM_)
 import Control.Monad.IO.Class
 import Control.Monad.STM
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Control
 import Data.IORef
+import Data.Foldable
 import Data.Maybe (catMaybes)
+import Data.Monoid
+import Prelude hiding (mapM_)
 import System.IO.Unsafe
 
 -- | Synonym for @return ()@.
@@ -235,3 +238,24 @@ iterateMaybeM f x = do
         Nothing -> return []
         Just x' -> (x':) `liftM` iterateMaybeM f x'
 
+-- | A monadic unfold.
+unfoldM :: Monad m => (s -> m (Maybe (a, s))) -> s -> m [a]
+unfoldM f s = do
+    mres <- f s
+    case mres of
+        Nothing      -> return []
+        Just (a, s') -> liftM2 (:) (return a) (unfoldM f s')
+
+-- | A monadic unfold which does not interact with the result.  The only action
+--   this function provides therefore is to iterate through the values in 's'
+--   and produce side-effects in IO.
+unfoldM_ :: Monad m => (s -> m (Maybe s)) -> s -> m ()
+unfoldM_ f s = f s >>= mapM_ (unfoldM_ f)
+
+-- | A monadic unfold.
+unfoldMapM :: (Monad m, Monoid a) => (s -> m (Maybe (a, s))) -> s -> m a
+unfoldMapM f s = do
+    mres <- f s
+    case mres of
+        Nothing      -> return mempty
+        Just (a, s') -> liftM2 mappend (return a) (unfoldMapM f s')
