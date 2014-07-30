@@ -259,3 +259,7 @@ unfoldMapM f s = do
     case mres of
         Nothing      -> return mempty
         Just (a, s') -> liftM2 mappend (return a) (unfoldMapM f s')
+
+fold1M :: Monad m => (a -> a -> m a) -> [a] -> m a
+fold1M _ []     = error "foldl1M: empty list"
+fold1M f (x:xs) = foldM f x xs
