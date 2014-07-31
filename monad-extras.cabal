@@ -1,5 +1,5 @@
 name:           monad-extras
-version:        0.5.8
+version:        0.5.9
 synopsis:       Extra utility functions for working with monads
 -- description:
 homepage:       http://github.com/jwiegley/monad-extras
