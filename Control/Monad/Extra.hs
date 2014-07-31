@@ -10,8 +10,9 @@ import Control.Monad.IO.Class
 import Control.Monad.STM
 import Control.Monad.Trans.Cont
 import Control.Monad.Trans.Control
-import Data.IORef
+import Data.Bits
 import Data.Foldable
+import Data.IORef
 import Data.Maybe (catMaybes)
 import Data.Monoid
 import Prelude hiding (mapM_)
@@ -263,3 +264,26 @@ unfoldMapM f s = do
 fold1M :: Monad m => (a -> a -> m a) -> [a] -> m a
 fold1M _ []     = error "foldl1M: empty list"
 fold1M f (x:xs) = foldM f x xs
+
+-- | Assuming the function passed is associativity, divide up the work binary
+--   tree-wise.
+assocFoldl1 :: (a -> a -> a) -> [a] -> a
+assocFoldl1 _ [] = error "assocFold1: empty list"
+assocFoldl1 _ [x] = x
+assocFoldl1 f [x, y] = f x y
+assocFoldl1 f xs = case splitAt (shiftR (length xs) 1) xs of
+    ([y], zs) -> f y (assocFoldl1 f zs)
+    (ys,  zs) -> f (assocFoldl1 f ys) (assocFoldl1 f zs)
+
+-- | Assuming the function passed is associativity, divide up the work binary
+--   tree-wise.
+assocFoldl1M :: Monad m => (a -> a -> m a) -> [a] -> m a
+assocFoldl1M _ [] = error "assocFold1M: empty list"
+assocFoldl1M _ [x] = return x
+assocFoldl1M f [x, y] = f x y
+assocFoldl1M f xs = case splitAt (shiftR (length xs) 1) xs of
+    ([y], zs) -> f y =<< assocFoldl1M f zs
+    (ys,  zs) -> do
+        y' <- assocFoldl1M f ys
+        z' <- assocFoldl1M f zs
+        f y' z'
