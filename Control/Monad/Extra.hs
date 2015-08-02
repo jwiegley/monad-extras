@@ -287,13 +287,3 @@ assocFoldl1M f xs = case splitAt (shiftR (length xs) 1) xs of
         y' <- assocFoldl1M f ys
         z' <- assocFoldl1M f zs
         f y' z'
-
-findM :: (Monad m, Foldable f) => (a -> m (Maybe b)) -> f a -> m (Maybe b)
-findM f = loop . toList
-  where
-    loop [] = return Nothing
-    loop (x:xs) = do
-        res <- f x
-        case res of
-            Nothing -> loop xs
-            Just r  -> return (Just r)
