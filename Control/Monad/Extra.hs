@@ -265,8 +265,8 @@ fold1M :: Monad m => (a -> a -> m a) -> [a] -> m a
 fold1M _ []     = error "foldl1M: empty list"
 fold1M f (x:xs) = foldM f x xs
 
--- | Assuming the function passed is associativity, divide up the work binary
---   tree-wise.
+-- | Assuming the function passed in is associative, divide up the work binary
+-- tree-wise.
 assocFoldl1 :: (a -> a -> a) -> [a] -> a
 assocFoldl1 _ [] = error "assocFold1: empty list"
 assocFoldl1 _ [x] = x
@@ -275,8 +275,8 @@ assocFoldl1 f xs = case splitAt (shiftR (length xs) 1) xs of
     ([y], zs) -> f y (assocFoldl1 f zs)
     (ys,  zs) -> f (assocFoldl1 f ys) (assocFoldl1 f zs)
 
--- | Assuming the function passed is associativity, divide up the work binary
---   tree-wise.
+-- | Assuming the function passed in is associative, divide up the work binary
+-- tree-wise.
 assocFoldl1M :: Monad m => (a -> a -> m a) -> [a] -> m a
 assocFoldl1M _ [] = error "assocFold1M: empty list"
 assocFoldl1M _ [x] = return x
@@ -287,3 +287,13 @@ assocFoldl1M f xs = case splitAt (shiftR (length xs) 1) xs of
         y' <- assocFoldl1M f ys
         z' <- assocFoldl1M f zs
         f y' z'
+
+findM :: (Monad m, Foldable f) => (a -> m (Maybe b)) -> f a -> m (Maybe b)
+findM f = loop . toList
+  where
+    loop [] = return Nothing
+    loop (x:xs) = do
+        res <- f x
+        case res of
+            Nothing -> loop xs
+            Just r  -> return (Just r)
