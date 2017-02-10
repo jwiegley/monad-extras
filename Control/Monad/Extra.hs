@@ -222,14 +222,6 @@ iterateM f x = do
     x' <- f x
     (x':) `liftM` iterateM f x'
 
--- | A monadic version of 'iterate' which produces an infinite sequence of
---   values using lazy I/O.
-lazyIterateM :: (Monad m, MonadBaseControl IO m) => (a -> m a) -> a -> m [a]
-lazyIterateM f x = do
-    y <- f x
-    z <- control $ \run -> unsafeInterleaveIO $ run $ iterateM f y
-    return (y:z)
-
 -- | Monadic equivalent to 'iterate', which uses Maybe to know when to
 --   terminate.
 iterateMaybeM :: Monad m => (a -> m (Maybe a)) -> a -> m [a]

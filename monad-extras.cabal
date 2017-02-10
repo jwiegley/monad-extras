@@ -1,12 +1,12 @@
 name:           monad-extras
-version:        0.5.11
+version:        0.6.0
 synopsis:       Extra utility functions for working with monads
 -- description:
 homepage:       http://github.com/jwiegley/monad-extras
 license:        BSD3
 license-file:   LICENSE
 author:         John Wiegley, Chris Done
-maintainer:     johnw@fpcomplete.com
+maintainer:     johnw@newartisans.com
 -- copyright:
 category:       Control
 build-type:     Simple
